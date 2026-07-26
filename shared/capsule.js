@@ -1,18 +1,25 @@
 // shared/capsule.js — Core Capsule data model + factory function
 
+import { extractThreadId } from './utils.js';
+
 /**
  * Creates a new Capsule object with sensible defaults.
  * @param {Object} overrides - Fields to override on the default Capsule
  * @returns {Object} A fully-formed Capsule object
  */
 export function createCapsule(overrides = {}) {
+  const url = overrides.url || '';
+  const threadId = overrides.threadId || extractThreadId(url);
+
   return {
     id: crypto.randomUUID(),
     title: '',                    // User-editable or AI-generated title
     source: '',                   // "claude" | "chatgpt" | "gemini" | "deepseek"
-    url: '',                      // Full URL at capture time
+    url,                          // Full URL at capture time
+    threadId,                     // Unique thread identifier
     capturedAt: Date.now(),       // Unix timestamp
     updatedAt: Date.now(),
+
 
     content: {
       summary: '',                // Short paragraph summary of the context

@@ -1,8 +1,9 @@
 // content/index.js — Entry point: detects platform, loads extractor, injects capture button
 
 import { getExtractor } from './extractors/index.js';
-import { injectButton, promptCapsuleName, registerCaptureTrigger } from './injector.js';
+import { injectButton, promptCapsuleName, promptDuplicateAction, registerCaptureTrigger } from './injector.js';
 import { createCapsule } from '../shared/capsule.js';
+import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/utils.js';
 
 (async function init() {
   if (window !== window.top) return;
@@ -16,6 +17,29 @@ import { createCapsule } from '../shared/capsule.js';
 
     console.log(`[Kairo] Detected platform: ${extractor.platform}`);
 
+    // ─── Tab-scoped Capsule ID Tracking ─────────────────────────
+    let _inMemoryCapsuleId = null;
+
+    function getTabCapsuleId() {
+      if (_inMemoryCapsuleId) return _inMemoryCapsuleId;
+      try {
+        const fromDom = document.documentElement.getAttribute('data-kairo-capsule-id');
+        if (fromDom) { _inMemoryCapsuleId = fromDom; return fromDom; }
+      } catch (e) {}
+      try {
+        const fromSession = sessionStorage.getItem('kairo_active_capsule_id');
+        if (fromSession) { _inMemoryCapsuleId = fromSession; return fromSession; }
+      } catch (e) {}
+      return null;
+    }
+
+    function setTabCapsuleId(id) {
+      if (!id) return;
+      _inMemoryCapsuleId = id;
+      try { document.documentElement.setAttribute('data-kairo-capsule-id', id); } catch (e) {}
+      try { sessionStorage.setItem('kairo_active_capsule_id', id); } catch (e) {}
+    }
+
     // Check settings (graceful fallback)
     let autoEnrich = false;
     let showButton = true;
@@ -27,19 +51,8 @@ import { createCapsule } from '../shared/capsule.js';
       console.warn('[Kairo] Could not read settings, using defaults:', settingsErr);
     }
 
-    // Capture routine — shared by the floating button and the headless
-    // keyboard-shortcut / context-menu trigger. Defined regardless of the button
-    // setting so capture keeps working when the button is hidden (issue #50).
     const captureHandler = async () => {
-      // Ask user for capsule name using modern custom modal
-      const customTitle = await promptCapsuleName();
-      if (customTitle === null) {
-        console.log('[Kairo] Capture cancelled by user.');
-        return false; // Tells injector to reset cleanly without showing error
-      }
-      const capsuleTitle = customTitle;
-
-      // STEP 1: Extract turns
+      // STEP 1: Extract turns from DOM first
       console.log('[Kairo] Step 1: Extracting turns...');
       let turns;
       try {
@@ -60,10 +73,9 @@ import { createCapsule } from '../shared/capsule.js';
         throw new Error('No conversation turns found on this page');
       }
 
-      // STEP 2: Build capsule
-      console.log('[Kairo] Step 2: Building capsule...');
+      // STEP 2: Build safe turns & snippet
+      console.log('[Kairo] Step 2: Preparing turns payload...');
 
-      // Guard: cap payload size — long ChatGPT threads can overflow IPC
       const MAX_TURNS = 30;
       const MAX_TURN_TEXT = 3000;
       const safeTurns = turns
@@ -78,12 +90,96 @@ import { createCapsule } from '../shared/capsule.js';
       const snippet = safeTurns.map(t => `[${t.role}]: ${t.text}`).join('\n\n');
       const reasoningText = safeTurns.map(t => t.reasoning).filter(Boolean).join('\n\n');
 
+      const currentThreadId = extractThreadId(location.href);
+      let existingCapsule = null;
+
+      // ─── Find existing capsule for THIS specific chat thread ───────────
+      // Layer A: Check pinned tab capsule ID AND verify it actually matches current chat content
+      const pinnedId = getTabCapsuleId();
+      if (pinnedId) {
+        console.log(`[Kairo] Checking pinned capsule ID: ${pinnedId}`);
+        try {
+          const capsules = await chrome.runtime.sendMessage({ type: 'GET_CAPSULES' });
+          if (Array.isArray(capsules)) {
+            const found = capsules.find(c => c.id === pinnedId);
+            if (found) {
+              const storedTurns = found.content?.rawTurns || [];
+              // Ensure the pinned capsule actually belongs to the active conversation content
+              if (hasUserTurnOverlap(storedTurns, safeTurns) || hasTurnOverlap(storedTurns, safeTurns)) {
+                existingCapsule = found;
+                console.log(`[Kairo] Found matching pinned capsule: "${existingCapsule.title}"`);
+              } else {
+                console.log(`[Kairo] Pinned capsule "${found.title}" does not match active chat content (user switched chats in sidebar)`);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[Kairo] Pinned capsule lookup failed:', e);
+        }
+      }
+
+      // Layer B: Search storage by threadId / content match
+      if (!existingCapsule) {
+        console.log('[Kairo] Searching storage for matching thread capsule...');
+        try {
+          existingCapsule = await chrome.runtime.sendMessage({
+            type: 'FIND_THREAD_CAPSULE',
+            threadId: currentThreadId,
+            url: location.href,
+            source: extractor.platform,
+            turns: safeTurns,
+          });
+          if (existingCapsule) {
+            console.log(`[Kairo] Found existing capsule by content match: "${existingCapsule.title}" (${existingCapsule.id})`);
+          }
+        } catch (findErr) {
+          console.warn('[Kairo] Could not check for existing thread capsule:', findErr);
+        }
+      }
+
+      let result;
+
+      // ─── MERGE PATH: Existing capsule for THIS chat found ───────────────
+      if (existingCapsule) {
+        console.log(`[Kairo] Merging turns into existing capsule for this chat: ${existingCapsule.id} ("${existingCapsule.title}")`);
+        try {
+          result = await chrome.runtime.sendMessage({
+            type: 'MERGE_CAPSULE',
+            id: existingCapsule.id,
+            threadId: currentThreadId,
+            url: location.href,
+            source: extractor.platform,
+            turns: safeTurns,
+            snippet: snippet.slice(-4000),
+            title: existingCapsule.title,
+            options: { enrich: autoEnrich },
+          });
+        } catch (msgErr) {
+          console.error('[Kairo] Merge message FAILED:', msgErr);
+          throw new Error('Service worker unreachable: ' + (msgErr.message || 'unknown'));
+        }
+
+        if (result && result.success) {
+          setTabCapsuleId(existingCapsule.id);
+          console.log(`[Kairo] ✓ Capsule merged successfully: "${result.capsule?.title || existingCapsule.title}"`);
+          return result;
+        }
+      }
+
+      // ─── CREATE PATH: First capture on this specific chat ────────────────
+      const customTitle = await promptCapsuleName();
+      if (customTitle === null) {
+        console.log('[Kairo] Capture cancelled by user.');
+        return false;
+      }
+
       let capsule;
       try {
         capsule = createCapsule({
           source: extractor.platform,
           url: location.href,
-          title: capsuleTitle,
+          threadId: currentThreadId,
+          title: customTitle,
           meta: {
             reasoning: reasoningText || undefined
           },
@@ -103,9 +199,8 @@ import { createCapsule } from '../shared/capsule.js';
         throw new Error('Capsule creation failed: ' + (capsuleErr.message || 'unknown'));
       }
 
-      // STEP 3: Send to background
+      // Send new capsule to background service worker
       console.log('[Kairo] Step 3: Sending to service worker...');
-      let result;
       try {
         result = await chrome.runtime.sendMessage({
           type: 'SAVE_CAPSULE',
@@ -116,6 +211,11 @@ import { createCapsule } from '../shared/capsule.js';
       } catch (msgErr) {
         console.error('[Kairo] Step 3 FAILED - message error:', msgErr);
         throw new Error('Service worker unreachable: ' + (msgErr.message || 'unknown'));
+      }
+
+      // Pin the newly created capsule ID to this tab for subsequent captures in this chat
+      if (result && result.success) {
+        setTabCapsuleId(capsule.id);
       }
 
       // STEP 4: Validate response
@@ -130,13 +230,10 @@ import { createCapsule } from '../shared/capsule.js';
         throw new Error(errorDetail);
       }
 
-      console.log(`[Kairo] ✓ Capsule saved successfully: ${result.capsule?.title || capsule.id}`);
+      console.log(`[Kairo] ✓ Capsule saved successfully: ${result.capsule?.title || 'Capsule'}`);
       return result;
     };
 
-    // Always register the keyboard-shortcut / context-menu capture trigger.
-    // Only render the floating button when the user hasn't disabled it — but the
-    // trigger is registered either way, so capture is never silently lost (#50).
     if (showButton) {
       injectButton(captureHandler);
     } else {

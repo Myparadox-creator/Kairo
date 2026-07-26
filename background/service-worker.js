@@ -1,7 +1,7 @@
 // background/service-worker.js — Central hub for Kairo extension
 // Handles: messaging, storage ops, enrichment, keyboard shortcuts, context menus
 
-import { saveCapsule, getCapsules, deleteCapsule, deleteCapsules, updateCapsule, getSettings, saveSettings, clearAllCapsules, compactDatabase } from '../shared/storage.js';
+import { saveCapsule, getCapsules, deleteCapsule, deleteCapsules, updateCapsule, getSettings, saveSettings, clearAllCapsules, compactDatabase, findCapsuleByThread } from '../shared/storage.js';
 import { validateCapsule } from '../shared/capsule.js';
 import { getSupportedMatchPatterns } from '../shared/platforms.js';
 import { enrichCapsule } from './enricher.js';
@@ -28,9 +28,73 @@ const MESSAGE_HANDLERS = {
     return handleSave(msg.capsule, msg.options);
   },
 
+  async COMPACT_DATABASE() {
+    return compactDatabase();
+  },
+
+  async FIND_THREAD_CAPSULE(msg) {
+
+    return findCapsuleByThread(msg.threadId, msg.url, { turns: msg.turns, source: msg.source });
+  },
+
+  async MERGE_CAPSULE(msg) {
+    const capsules = await getCapsules();
+    let existing = msg.id ? capsules.find(c => c.id === msg.id) : null;
+    if (!existing) {
+      existing = await findCapsuleByThread(msg.threadId, msg.url, { turns: msg.turns, source: msg.source });
+    }
+
+    if (!existing) {
+      return { success: false, error: 'Target capsule not found for merging' };
+    }
+
+    const updates = {
+      content: {
+        ...existing.content,
+        rawTurns: msg.turns,
+        rawSnippet: msg.snippet,
+      },
+      url: msg.url || existing.url,
+      threadId: msg.threadId || existing.threadId,
+      updatedAt: Date.now(),
+    };
+
+    if (msg.title) {
+      updates.title = msg.title;
+    }
+
+    let updatedCapsule = { ...existing, ...updates };
+
+    if (msg.options?.enrich) {
+      try {
+        updatedCapsule = await enrichCapsule(updatedCapsule);
+      } catch (enrichErr) {
+        console.warn('[Kairo SW] Re-enrichment on merge failed:', enrichErr);
+      }
+    }
+
+    const res = await saveCapsule(updatedCapsule);
+    if (!res.success) return res;
+
+    try {
+      chrome.notifications.create(`kairo-merged-${updatedCapsule.id.slice(0, 8)}`, {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('assets/icons/icon48.png'),
+        title: 'Kairo — Context Updated!',
+        message: `Updated capsule "${updatedCapsule.title || 'Untitled'}" (${msg.turns?.length || 0} turns).`,
+      });
+    } catch (notifErr) {
+      console.warn('[Kairo SW] Notification failed:', notifErr);
+    }
+
+    return { success: true, capsule: updatedCapsule };
+  },
+
+
   async GET_CAPSULES() {
     return getCapsules();
   },
+
 
 
   async DELETE_CAPSULE(msg) {
@@ -68,9 +132,6 @@ const MESSAGE_HANDLERS = {
     return clearAllCapsules();
   },
 
-  async COMPACT_DATABASE() {
-    return compactDatabase();
-  },
 
   async EXPORT_TO_NOTION(msg) {
     try {
@@ -589,4 +650,10 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
   }
 });
 
+// Auto-compact and merge duplicates on initialization
+compactDatabase().catch(err => {
+  console.warn('[Kairo SW] Initial DB compaction skipped:', err);
+});
+
 console.log('[Kairo SW] Service worker initialized');
+
