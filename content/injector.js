@@ -154,8 +154,7 @@ export function injectButton(onCapture) {
     }
   });
 
-
-// Shared capture routine — used by the menu AND the global trigger.
+  // Shared capture routine — used by the menu AND the global trigger.
   let capturing = false;
   async function runCapture() {
     if (capturing) return;
@@ -189,22 +188,26 @@ export function injectButton(onCapture) {
   injectOpt.addEventListener('click', async () => {
     menu.style.display = 'none';
     modal.style.display = 'flex';
-    modal.innerHTML = '<div style="color:#aaa; font-size:12px; text-align:center;">Loading...</div>';
+    modal.innerHTML =
+      '<div style="color:#aaa; font-size:12px; text-align:center;">Loading...</div>';
 
     chrome.runtime.sendMessage({ type: 'GET_CAPSULES' }, (capsules) => {
       if (chrome.runtime.lastError) {
         console.error('[Kairo] GET_CAPSULES failed:', chrome.runtime.lastError.message);
-        modal.innerHTML = '<div style="color:#aaa; font-size:12px; text-align:center;">Could not load capsules.</div>';
+        modal.innerHTML =
+          '<div style="color:#aaa; font-size:12px; text-align:center;">Could not load capsules.</div>';
         return;
       }
       if (!capsules || capsules.length === 0) {
-        modal.innerHTML = '<div style="color:#aaa; font-size:12px; text-align:center;">No capsules found.</div>';
+        modal.innerHTML =
+          '<div style="color:#aaa; font-size:12px; text-align:center;">No capsules found.</div>';
         return;
       }
 
-      modal.innerHTML = '<div style="color:#fff; font-size:13px; font-weight:600; margin-bottom:4px;">Select to Inject</div>';
+      modal.innerHTML =
+        '<div style="color:#fff; font-size:13px; font-weight:600; margin-bottom:4px;">Select to Inject</div>';
 
-      capsules.forEach(capsule => {
+      capsules.forEach((capsule) => {
         const item = document.createElement('div');
         item.textContent = capsule.title || 'Untitled Capsule';
 
@@ -236,7 +239,10 @@ export function injectButton(onCapture) {
         });
 
         item.addEventListener('dragstart', (e) => {
-          e.dataTransfer.setData('text/plain', buildInjectionText(capsule, settings?.injectionTemplate));
+          e.dataTransfer.setData(
+            'text/plain',
+            buildInjectionText(capsule, settings?.injectionTemplate),
+          );
           item.style.opacity = '0.5';
           modal.style.opacity = '0.3';
         });
@@ -247,7 +253,9 @@ export function injectButton(onCapture) {
         });
 
         item.addEventListener('click', () => {
-          injectText(buildInjectionText(capsule, settings?.injectionTemplate) || 'No content found.');
+          injectText(
+            buildInjectionText(capsule, settings?.injectionTemplate) || 'No content found.',
+          );
           modal.style.display = 'none';
         });
 
@@ -329,13 +337,13 @@ function trackInputArea(menu, modal) {
   const findInput = () => {
     // Selectors for chat inputs across platforms
     const selectors = [
-      '#prompt-textarea',           // ChatGPT
-      'textarea[data-id="root"]',   // Claude fallback
-      'div.ProseMirror',            // Claude main
-      'rich-textarea',              // Gemini
-      '#chat-input',                // DeepSeek
+      '#prompt-textarea', // ChatGPT
+      'textarea[data-id="root"]', // Claude fallback
+      'div.ProseMirror', // Claude main
+      'rich-textarea', // Gemini
+      '#chat-input', // DeepSeek
       'textarea[placeholder*="message" i]',
-      'textarea[placeholder*="ask" i]'
+      'textarea[placeholder*="ask" i]',
     ];
 
     for (const sel of selectors) {
@@ -406,9 +414,12 @@ function trackInputArea(menu, modal) {
       // Determine position based on platform
       if (location.hostname.includes('chatgpt.com')) {
         // Position outside the right side of the ChatGPT input bar
-        // rect is the text area itself, which ends before the mic/send buttons. 
+        // rect is the text area itself, which ends before the mic/send buttons.
         // Adding ~110px pushes it past those buttons to sit cleanly on the right.
-        const isCanvasActive = document.querySelector('[data-testid="canvas-container"], [class*="canvas-container"], div[class*="canvas"]') !== null;
+        const isCanvasActive =
+          document.querySelector(
+            '[data-testid="canvas-container"], [class*="canvas-container"], div[class*="canvas"]',
+          ) !== null;
         if (isCanvasActive) {
           left = rect.right - 10;
         } else {
@@ -900,5 +911,4 @@ export function promptDuplicateAction({ existingCapsule, newTurnCount }) {
     }, 50);
   });
 }
-
 

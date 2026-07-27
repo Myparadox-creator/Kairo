@@ -53,10 +53,7 @@ export default defineConfig({
   plugins: [
     webExtension({
       manifest: getManifest,
-      watchFilePaths: [
-        'manifest.json',
-        'manifest.firefox.json',
-      ],
+      watchFilePaths: ['manifest.json', 'manifest.firefox.json'],
     }),
   ],
   build: {

@@ -16,7 +16,7 @@ function enqueueMutation(mutator) {
   // Keep the chain alive whether or not an individual mutation rejects.
   mutationChain = result.then(
     () => {},
-    () => {}
+    () => {},
   );
   return result;
 }
@@ -27,7 +27,7 @@ async function syncLocalPinnedToSync() {
   try {
     const res = await chrome.storage.local.get(STORAGE_KEY);
     const capsules = res[STORAGE_KEY] || [];
-    const pinned = capsules.filter(c => c.meta?.pinned);
+    const pinned = capsules.filter((c) => c.meta?.pinned);
     await chrome.storage.sync.set({ [SYNC_PINNED_KEY]: pinned });
   } catch (err) {
     console.error('[Kairo Sync] Failed to sync pinned capsules:', err);
@@ -97,7 +97,7 @@ async function upsertCapsuleUnlocked(capsule) {
   const existing = await getCapsules();
   const incomingSig = getTurnSignature(capsule.content?.rawTurns);
 
-  const idx = existing.findIndex(c => isSameThread(c, capsule, incomingSig));
+  const idx = existing.findIndex((c) => isSameThread(c, capsule, incomingSig));
 
   if (idx > -1) {
     // Merge into existing capsule: preserve original ID, title, and initial metadata
@@ -117,7 +117,7 @@ async function upsertCapsuleUnlocked(capsule) {
       meta: {
         ...target.meta,
         ...capsule.meta,
-      }
+      },
     };
   } else {
     existing.unshift(capsule);
@@ -158,8 +158,8 @@ export async function getCapsules() {
     const syncedPinned = syncRes[SYNC_PINNED_KEY] || [];
 
     let modified = false;
-    syncedPinned.forEach(syncCap => {
-      const idx = localCaps.findIndex(c => c.id === syncCap.id);
+    syncedPinned.forEach((syncCap) => {
+      const idx = localCaps.findIndex((c) => c.id === syncCap.id);
       if (idx === -1) {
         if (syncCap.meta?.pinned) {
           localCaps.unshift(syncCap);
@@ -210,7 +210,7 @@ export async function findCapsuleByThread(threadId, url = '', opts = {}) {
     };
     const incomingSig = getTurnSignature(turns);
 
-    return capsules.find(c => isSameThread(c, incoming, incomingSig)) || null;
+    return capsules.find((c) => isSameThread(c, incoming, incomingSig)) || null;
   } catch (err) {
     console.error('[Kairo] Error finding capsule by thread:', err);
     return null;
@@ -225,7 +225,7 @@ export async function deleteCapsule(id) {
   return enqueueMutation(async () => {
     try {
       const existing = await getCapsules();
-      const filtered = existing.filter(c => c.id !== id);
+      const filtered = existing.filter((c) => c.id !== id);
       await chrome.storage.local.set({ [STORAGE_KEY]: filtered });
       await syncLocalPinnedToSync();
       return { success: true };
@@ -245,7 +245,7 @@ export async function deleteCapsules(ids) {
     try {
       const idSet = new Set(ids);
       const existing = await getCapsules();
-      const filtered = existing.filter(c => !idSet.has(c.id));
+      const filtered = existing.filter((c) => !idSet.has(c.id));
       await chrome.storage.local.set({ [STORAGE_KEY]: filtered });
       return { success: true, deletedCount: existing.length - filtered.length };
     } catch (err) {
@@ -264,7 +264,7 @@ export async function updateCapsule(id, updates) {
   return enqueueMutation(async () => {
     try {
       const capsules = await getCapsules();
-      const capsule = capsules.find(c => c.id === id);
+      const capsule = capsules.find((c) => c.id === id);
       if (!capsule) {
         return { success: false, error: 'Capsule not found' };
       }
@@ -329,9 +329,11 @@ export async function compactDatabase() {
       const initialCount = localCaps.length;
 
       // Filter invalid structures
-      localCaps = localCaps.filter(c => {
+      localCaps = localCaps.filter((c) => {
         if (!c || typeof c !== 'object') return false;
-        return typeof c.id === 'string' && typeof c.source === 'string' && typeof c.content === 'object';
+        return (
+          typeof c.id === 'string' && typeof c.source === 'string' && typeof c.content === 'object'
+        );
       });
 
       // Deduplicate using the same isSameThread() cascade
@@ -339,7 +341,7 @@ export async function compactDatabase() {
 
       for (const cap of localCaps) {
         const capSig = getTurnSignature(cap.content?.rawTurns);
-        const existingIdx = dedupedCaps.findIndex(existing => isSameThread(existing, cap, capSig));
+        const existingIdx = dedupedCaps.findIndex((existing) => isSameThread(existing, cap, capSig));
 
         if (existingIdx > -1) {
           const target = dedupedCaps[existingIdx];

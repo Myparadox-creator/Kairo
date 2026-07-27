@@ -63,7 +63,9 @@ Before claiming an issue or submitting a PR, contributors are expected to:
 ## 🚀 `// QUICK START (10 MIN QUEST)`
 
 ### 📥 For Non-Coders (Easy Install)
+
 If you don't have coding experience, you can easily download and add the extension:
+
 1. Go to the [Releases](https://github.com/satyakiabhijit/Kairo/releases) page and download the latest `.zip` file.
 2. Extract the downloaded `.zip` file to a folder on your computer.
 3. Open your browser extensions page (`chrome://extensions/` for Chrome/Edge/Brave).
@@ -86,18 +88,22 @@ This generates a production build. Alternatively, use `npm run dev` to start a w
 #### 2. Loading the Extension
 
 ##### Chrome, Edge, or Brave
+
 1. Run `npm run build` or `npm run dev`.
 2. Open the browser extensions page (`chrome://extensions/`).
 3. Enable **Developer mode**.
 4. Load the `dist-chrome/` folder as an unpacked extension.
 
 ##### Firefox
+
 1. Run `npm run build:firefox` or `npm run dev:firefox`.
 2. Open `about:debugging#/runtime/this-firefox`.
 3. Load the extension from the `dist-firefox/` folder.
 
 #### 3. Configuration
+
 Open the extension settings page to configure:
+
 - Claude API key for optional enrichment
 - Automatic enrichment on capture
 - Visibility of the floating capture button

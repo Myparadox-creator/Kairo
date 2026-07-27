@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest a focused improvement for Kairo
-title: "[FEATURE] "
+title: '[FEATURE] '
 labels: enhancement
 assignees: ''
 ---
@@ -10,6 +10,7 @@ assignees: ''
 <!-- What user or developer workflow would this improve? -->
 
 **Affected area**
+
 - Capture button
 - Conversation extraction
 - Popup capsule browser

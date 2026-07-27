@@ -1,9 +1,5 @@
 import { test, expect } from 'vitest';
-import {
-  getPlatformByHost,
-  getSupportedMatchPatterns,
-  normalizeHostname,
-} from './platforms.js';
+import { getPlatformByHost, getSupportedMatchPatterns, normalizeHostname } from './platforms.js';
 
 test('normalizeHostname strips a www prefix and lowercases hostnames', () => {
   expect(normalizeHostname('WWW.ChatGPT.com')).toBe('chatgpt.com');

@@ -59,7 +59,9 @@ function processDeepSeekTurn(role, el) {
   let text = el.innerText.trim();
   let reasoning = '';
   if (role === 'assistant') {
-    const thinkEl = el.querySelector('div[class*="think"], div[class*="thought"], think, .ds-think');
+    const thinkEl = el.querySelector(
+      'div[class*="think"], div[class*="thought"], think, .ds-think',
+    );
     if (thinkEl) {
       reasoning = thinkEl.innerText.trim();
       text = text.replace(reasoning, '').trim();
@@ -78,44 +80,59 @@ export default {
     turns = [...document.querySelectorAll('.chat-message')];
     if (turns.length) {
       console.log(`[Kairo Extractor] DeepSeek: ${turns.length} turns (chat-message)`);
-      return turns.map(el => {
-        const role = el.classList.contains('user') ? 'user' : 'assistant';
-        return processDeepSeekTurn(role, el);
-      }).filter(t => t.text.length > 0 || t.reasoning?.length > 0);
+      return turns
+        .map((el) => {
+          const role = el.classList.contains('user') ? 'user' : 'assistant';
+          return processDeepSeekTurn(role, el);
+        })
+        .filter((t) => t.text.length > 0 || t.reasoning?.length > 0);
     }
 
     // Strategy 2: data-role attributes
     turns = [...document.querySelectorAll('[data-role]')];
     if (turns.length) {
       console.log(`[Kairo Extractor] DeepSeek: ${turns.length} turns (data-role)`);
-      return turns.map(el => {
-        const role = el.dataset.role === 'user' ? 'user' : 'assistant';
-        return processDeepSeekTurn(role, el);
-      }).filter(t => t.text.length > 0 || t.reasoning?.length > 0);
+      return turns
+        .map((el) => {
+          const role = el.dataset.role === 'user' ? 'user' : 'assistant';
+          return processDeepSeekTurn(role, el);
+        })
+        .filter((t) => t.text.length > 0 || t.reasoning?.length > 0);
     }
 
     // Strategy 3: message class patterns
-    turns = [...document.querySelectorAll('[class*="ChatMessage"], [class*="chat-message"], [class*="Message"]')];
+    turns = [
+      ...document.querySelectorAll(
+        '[class*="ChatMessage"], [class*="chat-message"], [class*="Message"]',
+      ),
+    ];
     if (turns.length) {
       console.log(`[Kairo Extractor] DeepSeek: ${turns.length} turns (ChatMessage class)`);
-      return turns.map(el => {
-        const classStr = el.classList.toString().toLowerCase();
-        const isUser = classStr.includes('user') || el.querySelector('[class*="user"]') !== null;
-        const role = isUser ? 'user' : 'assistant';
-        return processDeepSeekTurn(role, el);
-      }).filter(t => t.text.length > 0 || t.reasoning?.length > 0);
+      return turns
+        .map((el) => {
+          const classStr = el.classList.toString().toLowerCase();
+          const isUser = classStr.includes('user') || el.querySelector('[class*="user"]') !== null;
+          const role = isUser ? 'user' : 'assistant';
+          return processDeepSeekTurn(role, el);
+        })
+        .filter((t) => t.text.length > 0 || t.reasoning?.length > 0);
     }
 
     // Strategy 4: general conversation area
-    const mainArea = document.querySelector('main') || document.querySelector('[role="main"]') || document.querySelector('[class*="chat"]');
+    const mainArea =
+      document.querySelector('main') ||
+      document.querySelector('[role="main"]') ||
+      document.querySelector('[class*="chat"]');
     if (mainArea) {
       turns = [...mainArea.querySelectorAll('[class*="message"], [class*="turn"], .markdown')];
       if (turns.length >= 2) {
         console.log(`[Kairo Extractor] DeepSeek: ${turns.length} turns (generic)`);
-        return turns.map(el => {
-          const role = detectRole(el);
-          return processDeepSeekTurn(role, el);
-        }).filter(t => t.text.length > 0 || t.reasoning?.length > 0);
+        return turns
+          .map((el) => {
+            const role = detectRole(el);
+            return processDeepSeekTurn(role, el);
+          })
+          .filter((t) => t.text.length > 0 || t.reasoning?.length > 0);
       }
     }
 

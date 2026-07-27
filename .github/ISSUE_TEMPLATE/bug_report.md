@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Report a reproducible Kairo extension problem
-title: "[BUG] "
+title: '[BUG] '
 labels: bug
 assignees: ''
 ---
@@ -10,6 +10,7 @@ assignees: ''
 <!-- A clear and concise description of what the bug is. -->
 
 **Environment**
+
 - Browser:
 - Extension target: Chrome / Firefox
 - Kairo version or commit:
@@ -17,6 +18,7 @@ assignees: ''
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '...'
 3. Capture or inject a capsule

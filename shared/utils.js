@@ -91,7 +91,7 @@ export function getSafeText(el) {
     try {
       const clone = el.cloneNode(true);
       const selectorsToRemove = 'button, svg, [role="button"], .aria-label, [data-testid*="button"], [class*="action"], [class*="icon"], [class*="copy"], [class*="edit"]';
-      clone.querySelectorAll(selectorsToRemove).forEach(node => node.remove());
+      clone.querySelectorAll(selectorsToRemove).forEach((node) => node.remove());
       target = clone;
     } catch (e) {
       target = el;
@@ -202,11 +202,11 @@ export function extractThreadId(url = '') {
  */
 export function getTurnSignature(turns = []) {
   if (!Array.isArray(turns) || !turns.length) return '';
-  const userTurn = turns.find(t => t && t.role === 'user' && t.text && t.text.trim().length > 0);
+  const userTurn = turns.find((t) => t && t.role === 'user' && t.text && t.text.trim().length > 0);
   if (userTurn) {
     return cleanTextForMatching(userTurn.text).slice(0, 150);
   }
-  const firstTurn = turns.find(t => t && t.text && t.text.trim().length > 0);
+  const firstTurn = turns.find((t) => t && t.text && t.text.trim().length > 0);
   return firstTurn ? cleanTextForMatching(firstTurn.text).slice(0, 150) : '';
 }
 
@@ -221,14 +221,14 @@ export function hasTurnOverlap(turnsA = [], turnsB = []) {
   if (!turnsA.length || !turnsB.length) return false;
 
   const cleanedA = turnsA
-    .filter(t => t && t.text)
-    .map(t => cleanTextForMatching(t.text))
-    .filter(txt => txt.length >= 8);
+    .filter((t) => t && t.text)
+    .map((t) => cleanTextForMatching(t.text))
+    .filter((txt) => txt.length >= 8);
 
   const cleanedB = turnsB
-    .filter(t => t && t.text)
-    .map(t => cleanTextForMatching(t.text))
-    .filter(txt => txt.length >= 8);
+    .filter((t) => t && t.text)
+    .map((t) => cleanTextForMatching(t.text))
+    .filter((txt) => txt.length >= 8);
 
   if (!cleanedA.length || !cleanedB.length) return false;
 
@@ -258,14 +258,14 @@ export function hasUserTurnOverlap(turnsA = [], turnsB = []) {
   if (!turnsA.length || !turnsB.length) return false;
 
   const userTurnsA = turnsA
-    .filter(t => t && (t.role === 'user' || !t.role) && t.text)
-    .map(t => cleanTextForMatching(t.text))
-    .filter(txt => txt.length >= 5);
+    .filter((t) => t && (t.role === 'user' || !t.role) && t.text)
+    .map((t) => cleanTextForMatching(t.text))
+    .filter((txt) => txt.length >= 5);
 
   const userTurnsB = turnsB
-    .filter(t => t && (t.role === 'user' || !t.role) && t.text)
-    .map(t => cleanTextForMatching(t.text))
-    .filter(txt => txt.length >= 5);
+    .filter((t) => t && (t.role === 'user' || !t.role) && t.text)
+    .map((t) => cleanTextForMatching(t.text))
+    .filter((txt) => txt.length >= 5);
 
   if (!userTurnsA.length || !userTurnsB.length) return false;
 

@@ -13,7 +13,7 @@ Thanks for taking the time to contribute.
 I have a **Zero-Tolerance Policy** for metric farming and contribution fraud. As the project admin, I strictly enforce the following rules:
 
 1. **No Bot/Automated Submissions**: Creating issues and PRs at machine speed (e.g., 20 PRs in 30 seconds) will result in an instant ban.
-2. **No Stacked Branch Inflation**: PRs must be created cleanly from the `main` branch. Creating PRs from previous feature branches to artificially inflate GitHub line counts is strictly prohibited. Your level is judged on the *incremental* code changed, not the inflated diff.
+2. **No Stacked Branch Inflation**: PRs must be created cleanly from the `main` branch. Creating PRs from previous feature branches to artificially inflate GitHub line counts is strictly prohibited. Your level is judged on the _incremental_ code changed, not the inflated diff.
 3. **No Artificial Splitting**: Do not split a single logical feature or issue into multiple trivial PRs just to farm points.
 4. **No Self-Serve Point Farming**: Do not create generic issues just to immediately open a pre-written PR against them.
 5. **Relevant Code Only**: Do not inject irrelevant code, tools, or languages (e.g., Python scripts in a JavaScript extension) just to generate a diff.

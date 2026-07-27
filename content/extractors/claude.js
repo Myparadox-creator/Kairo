@@ -67,18 +67,24 @@ export default {
     turns = [...document.querySelectorAll('[data-testid="human-turn"], [data-testid="ai-turn"]')];
     if (turns.length) {
       console.log(`[Kairo Extractor] Claude: ${turns.length} turns (data-testid)`);
-      return turns.map(el => ({
+      return turns.map((el) => ({
         role: el.dataset.testid === 'human-turn' ? 'user' : 'assistant',
         text: getSafeText(el),
       }));
     }
 
     // Strategy 2: user/assistant message wrappers
-    turns = [...document.querySelectorAll('[data-is-streaming], .font-claude-message, .font-user-message')];
+    turns = [
+      ...document.querySelectorAll('[data-is-streaming], .font-claude-message, .font-user-message'),
+    ];
     if (turns.length) {
       console.log(`[Kairo Extractor] Claude: ${turns.length} turns (message wrappers)`);
-      return turns.map(el => ({
-        role: (el.classList.contains('font-user-message') || el.querySelector('[data-testid="human-turn"]')) ? 'user' : 'assistant',
+      return turns.map((el) => ({
+        role:
+          el.classList.contains('font-user-message') ||
+          el.querySelector('[data-testid="human-turn"]')
+            ? 'user'
+            : 'assistant',
         text: getSafeText(el),
       }));
     }
@@ -87,31 +93,40 @@ export default {
     turns = [...document.querySelectorAll('[data-role]')];
     if (turns.length) {
       console.log(`[Kairo Extractor] Claude: ${turns.length} turns (data-role)`);
-      return turns.map(el => ({
+      return turns.map((el) => ({
         role: el.dataset.role === 'human' || el.dataset.role === 'user' ? 'user' : 'assistant',
         text: getSafeText(el),
       }));
     }
 
     // Strategy 4: universal — look for alternating content blocks in the main conversation area
-    const conversationArea = document.querySelector('main') || document.querySelector('[class*="conversation"]') || document.querySelector('[role="main"]');
+    const conversationArea =
+      document.querySelector('main') ||
+      document.querySelector('[class*="conversation"]') ||
+      document.querySelector('[role="main"]');
     if (conversationArea) {
       // Try to find any message-like containers
-      turns = [...conversationArea.querySelectorAll('[class*="Message"], [class*="message"], [class*="Turn"], [class*="turn"], [class*="chat"]')];
+      turns = [
+        ...conversationArea.querySelectorAll(
+          '[class*="Message"], [class*="message"], [class*="Turn"], [class*="turn"], [class*="chat"]',
+        ),
+      ];
       if (turns.length >= 2) {
         console.log(`[Kairo Extractor] Claude: ${turns.length} turns (class pattern match)`);
-        return turns.map(el => ({
-          role: detectRole(el),
-          text: getSafeText(el),
-        })).filter(t => t.text.length > 0);
+        return turns
+          .map((el) => ({
+            role: detectRole(el),
+            text: getSafeText(el),
+          }))
+          .filter((t) => t.text.length > 0);
       }
 
       // Absolute last resort: grab all substantial text blocks from the conversation area
       const allDivs = [...conversationArea.querySelectorAll(':scope > div > div')];
-      const textBlocks = allDivs.filter(el => getSafeText(el).length > 20);
+      const textBlocks = allDivs.filter((el) => getSafeText(el).length > 20);
       if (textBlocks.length >= 2) {
         console.log(`[Kairo Extractor] Claude: ${textBlocks.length} blocks (last resort)`);
-        return textBlocks.map(el => ({
+        return textBlocks.map((el) => ({
           role: detectRole(el),
           text: getSafeText(el),
         }));

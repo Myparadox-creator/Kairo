@@ -37,16 +37,20 @@ export const TRANSLATIONS = {
     // Options Page
     settingsTitle: 'Kairo Settings',
     settingsDesc: 'Configure your AI context capture workflow.',
-    settingsDescCount: 'Configure your AI context capture workflow. You have {count} saved capsules.',
+    settingsDescCount:
+      'Configure your AI context capture workflow. You have {count} saved capsules.',
     claudeApiKeySection: 'Claude API Key',
-    claudeApiKeyDesc: 'Required for AI-powered context enrichment. Your key is stored securely in browser sync storage and never sent to any server except Anthropic\'s API.',
+    claudeApiKeyDesc:
+      "Required for AI-powered context enrichment. Your key is stored securely in browser sync storage and never sent to any server except Anthropic's API.",
     apiKeyField: 'API Key',
     behaviorSection: 'Behavior',
     behaviorDesc: 'Control how Kairo works on AI chat pages.',
     autoEnrichField: 'Auto-enrich on capture',
-    autoEnrichDesc: 'Automatically extract goals, stack, and key decisions using Claude API when saving a capsule.',
+    autoEnrichDesc:
+      'Automatically extract goals, stack, and key decisions using Claude API when saving a capsule.',
     showFloatingBtnField: 'Show floating capture button',
-    showFloatingBtnDesc: 'Display the capture button on supported AI chat pages. You can still use Ctrl+Shift+S even if this is off.',
+    showFloatingBtnDesc:
+      'Display the capture button on supported AI chat pages. You can still use Ctrl+Shift+S even if this is off.',
     saveSettingsBtn: 'Save Settings',
     savedBtn: 'Saved!',
     dataManagementSection: 'Data Management',
@@ -70,7 +74,7 @@ export const TRANSLATIONS = {
     toastImportFailed: 'Failed to parse import file',
     toastClearSuccess: 'All capsules deleted',
     toastClearFailed: 'Failed to clear data',
-    
+
     // New Settings Fields for #75, #76, #80, #82
     tabGeneral: 'General Settings',
     tabAdvanced: 'Advanced Options',
@@ -102,9 +106,11 @@ export const TRANSLATIONS = {
     foundSuffix: ' encontradas',
     totalSuffix: ' total',
     noCapsulesTitle: 'Aún no hay cápsulas',
-    noCapsulesDesc: 'Visita cualquier chat de IA y haz clic en el botón de captura para guardar el contexto.',
+    noCapsulesDesc:
+      'Visita cualquier chat de IA y haz clic en el botón de captura para guardar el contexto.',
     deleteConfirmTitle: '¿Eliminar cápsula?',
-    deleteConfirmText: 'Esta acción no se puede deshacer. La cápsula será eliminada permanentemente.',
+    deleteConfirmText:
+      'Esta acción no se puede deshacer. La cápsula será eliminada permanentemente.',
     btnCancel: 'Cancelar',
     btnDelete: 'Eliminar',
     loading: 'Cargando...',
@@ -127,20 +133,25 @@ export const TRANSLATIONS = {
     // Options Page
     settingsTitle: 'Configuración de Kairo',
     settingsDesc: 'Configura tu flujo de trabajo de captura de contexto de IA.',
-    settingsDescCount: 'Configura tu flujo de trabajo de captura de contexto de IA. Tienes {count} cápsulas guardadas.',
+    settingsDescCount:
+      'Configura tu flujo de trabajo de captura de contexto de IA. Tienes {count} cápsulas guardadas.',
     claudeApiKeySection: 'Clave API de Claude',
-    claudeApiKeyDesc: 'Requerido para el enriquecimiento de contexto alimentado por IA. Tu clave se almacena de forma segura en el almacenamiento de sincronización del navegador y nunca se envía a ningún servidor excepto a la API de Anthropic.',
+    claudeApiKeyDesc:
+      'Requerido para el enriquecimiento de contexto alimentado por IA. Tu clave se almacena de forma segura en el almacenamiento de sincronización del navegador y nunca se envía a ningún servidor excepto a la API de Anthropic.',
     apiKeyField: 'Clave API',
     behaviorSection: 'Comportamiento',
     behaviorDesc: 'Controla cómo funciona Kairo en las páginas de chat de IA.',
     autoEnrichField: 'Auto-enriquecer al capturar',
-    autoEnrichDesc: 'Extrae automáticamente objetivos, stack y decisiones clave usando la API de Claude al guardar una cápsula.',
+    autoEnrichDesc:
+      'Extrae automáticamente objetivos, stack y decisiones clave usando la API de Claude al guardar una cápsula.',
     showFloatingBtnField: 'Mostrar botón de captura flotante',
-    showFloatingBtnDesc: 'Muestra el botón de captura en las páginas de chat de IA compatibles. Aún puedes usar Ctrl+Shift+S incluso si esto está desactivado.',
+    showFloatingBtnDesc:
+      'Muestra el botón de captura en las páginas de chat de IA compatibles. Aún puedes usar Ctrl+Shift+S incluso si esto está desactivado.',
     saveSettingsBtn: 'Guardar configuración',
     savedBtn: '¡Guardado!',
     dataManagementSection: 'Gestión de datos',
-    dataManagementDesc: 'Exporta tus cápsulas para respaldo o impórtalas desde una exportación anterior.',
+    dataManagementDesc:
+      'Exporta tus cápsulas para respaldo o impórtalas desde una exportación anterior.',
     exportBtn: 'Exportar todas las cápsulas',
     importBtn: 'Importar desde JSON',
     dangerZoneSection: 'Zona de peligro',
@@ -160,7 +171,7 @@ export const TRANSLATIONS = {
     toastImportFailed: 'Error al procesar el archivo de importación',
     toastClearSuccess: 'Todas las cápsulas fueron eliminadas',
     toastClearFailed: 'Error al borrar los datos',
-    
+
     // New Settings Fields for #75, #76, #80, #82
     tabGeneral: 'Configuración general',
     tabAdvanced: 'Opciones avanzadas',
@@ -173,14 +184,16 @@ export const TRANSLATIONS = {
     themeDark: 'Oscuro',
     themeLight: 'Claro',
     autoTagField: 'Auto-etiquetar cápsulas usando IA',
-    autoTagDesc: 'Genera automáticamente etiquetas relevantes al capturar una cápsula usando Claude.',
+    autoTagDesc:
+      'Genera automáticamente etiquetas relevantes al capturar una cápsula usando Claude.',
     notionSection: 'Integración con Notion',
     notionSectionDesc: 'Exporta tus cápsulas guardadas directamente a páginas de Notion.',
     notionEnabledField: 'Habilitar integración con Notion',
-    notionEnabledDesc: 'Habilita los botones de exportación en las cápsulas dentro de la ventana emergente.',
+    notionEnabledDesc:
+      'Habilita los botones de exportación en las cápsulas dentro de la ventana emergente.',
     notionTokenField: 'Token de integración de Notion',
     notionDbIdField: 'ID de base de datos de Notion',
-  }
+  },
 };
 
 /**
@@ -195,7 +208,7 @@ export function t(key, locale = 'en', substitutions = {}) {
   let val = dict[key] || TRANSLATIONS.en[key] || key;
 
   // Perform substitutions
-  Object.keys(substitutions).forEach(k => {
+  Object.keys(substitutions).forEach((k) => {
     val = val.replace(`{${k}}`, substitutions[k]);
   });
 

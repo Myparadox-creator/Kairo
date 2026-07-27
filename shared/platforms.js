@@ -31,11 +31,13 @@ export function normalizeHostname(hostname = '') {
 
 export function getPlatformByHost(hostname) {
   const normalized = normalizeHostname(hostname);
-  return SUPPORTED_PLATFORMS.find(platform =>
-    platform.hosts.some(host => normalized === host || normalized.endsWith(`.${host}`))
-  ) || null;
+  return (
+    SUPPORTED_PLATFORMS.find((platform) =>
+      platform.hosts.some((host) => normalized === host || normalized.endsWith(`.${host}`)),
+    ) || null
+  );
 }
 
 export function getSupportedMatchPatterns() {
-  return SUPPORTED_PLATFORMS.flatMap(platform => platform.matchPatterns);
+  return SUPPORTED_PLATFORMS.flatMap((platform) => platform.matchPatterns);
 }

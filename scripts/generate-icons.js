@@ -14,14 +14,14 @@ if (!existsSync(ICONS_DIR)) {
 }
 
 function crc32(buf) {
-  let crc = 0xFFFFFFFF;
+  let crc = 0xffffffff;
   for (let i = 0; i < buf.length; i++) {
     crc ^= buf[i];
     for (let j = 0; j < 8; j++) {
-      crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
     }
   }
-  return (crc ^ 0xFFFFFFFF) >>> 0;
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 function createChunk(type, data) {
@@ -45,8 +45,8 @@ function createPNG(size) {
   const ihdrData = Buffer.alloc(13);
   ihdrData.writeUInt32BE(width, 0);
   ihdrData.writeUInt32BE(height, 4);
-  ihdrData[8] = 8;   // bit depth
-  ihdrData[9] = 6;   // RGBA
+  ihdrData[8] = 8; // bit depth
+  ihdrData[9] = 6; // RGBA
   ihdrData[10] = 0;
   ihdrData[11] = 0;
   ihdrData[12] = 0;
@@ -87,7 +87,7 @@ function createPNG(size) {
         }
       } else if (dist < R) {
         // Anti-alias edge
-        const alpha = Math.round(Math.max(0, (R - dist)) * 255);
+        const alpha = Math.round(Math.max(0, R - dist) * 255);
         rawData.push(108, 71, 255, alpha);
       } else {
         rawData.push(0, 0, 0, 0);
@@ -107,10 +107,10 @@ function isInBolt(nx, ny) {
   // Bolt: zigzag from top to bottom
   // Normalized coords: -1 to 1
   const points = [
-    [0.1, -0.55],  // top
+    [0.1, -0.55], // top
     [-0.15, -0.05], // mid-left
-    [0.15, -0.05],  // mid-right notch
-    [-0.1, 0.55],   // bottom
+    [0.15, -0.05], // mid-right notch
+    [-0.1, 0.55], // bottom
   ];
 
   // Check if point is near the bolt lines

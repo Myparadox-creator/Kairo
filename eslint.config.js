@@ -2,11 +2,11 @@ export default [
   {
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'module'
+      sourceType: 'module',
     },
     rules: {
       'no-unused-vars': 'warn',
-      'no-console': 'off'
-    }
-  }
+      'no-console': 'off',
+    },
+  },
 ];

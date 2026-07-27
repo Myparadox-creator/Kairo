@@ -12,15 +12,17 @@ describe('Template Injection', () => {
       stack: ['react'],
       rawTurns: [
         { role: 'user', text: 'hi' },
-        { role: 'assistant', text: 'hello' }
-      ]
-    }
+        { role: 'assistant', text: 'hello' },
+      ],
+    },
   };
 
   it('formats standard placeholders correctly', () => {
     const template = 'Title: {title} | Summary: {summary} | Goals: {goals} | Stack: {stack}';
     const text = buildInjectionText(capsule, template);
-    expect(text).toBe('Title: Test Capsule | Summary: This is a test summary. | Goals: goal1, goal2 | Stack: react');
+    expect(text).toBe(
+      'Title: Test Capsule | Summary: This is a test summary. | Goals: goal1, goal2 | Stack: react',
+    );
   });
 
   it('formats custom placeholders {date}, {platform}, {turns} correctly', () => {

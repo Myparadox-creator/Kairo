@@ -18,9 +18,7 @@ describe('deleteCapsules', () => {
   });
 
   it('removes only the specified ids', async () => {
-    const existing = [
-      { id: 'a' }, { id: 'b' }, { id: 'c' },
-    ];
+    const existing = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
     chrome.storage.local.get.mockResolvedValue({ kairo_capsules: existing });
 
     const result = await deleteCapsules(['a', 'c']);

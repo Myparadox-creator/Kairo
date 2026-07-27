@@ -79,16 +79,19 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
       const MAX_TURNS = 30;
       const MAX_TURN_TEXT = 3000;
       const safeTurns = turns
-        .slice(-MAX_TURNS)                          // keep most recent turns
-        .map(t => ({
+        .slice(-MAX_TURNS) // keep most recent turns
+        .map((t) => ({
           role: t.role,
           text: t.text.slice(0, MAX_TURN_TEXT),
-          reasoning: t.reasoning ? t.reasoning.slice(0, MAX_TURN_TEXT) : undefined
+          reasoning: t.reasoning ? t.reasoning.slice(0, MAX_TURN_TEXT) : undefined,
         }));
 
       console.log(`[Kairo] Step 2: using ${safeTurns.length} turns (capped from ${turns.length})`);
-      const snippet = safeTurns.map(t => `[${t.role}]: ${t.text}`).join('\n\n');
-      const reasoningText = safeTurns.map(t => t.reasoning).filter(Boolean).join('\n\n');
+      const snippet = safeTurns.map((t) => `[${t.role}]: ${t.text}`).join('\n\n');
+      const reasoningText = safeTurns
+        .map((t) => t.reasoning)
+        .filter(Boolean)
+        .join('\n\n');
 
       const currentThreadId = extractThreadId(location.href);
       let existingCapsule = null;
@@ -181,7 +184,7 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
           threadId: currentThreadId,
           title: customTitle,
           meta: {
-            reasoning: reasoningText || undefined
+            reasoning: reasoningText || undefined,
           },
           content: {
             rawTurns: safeTurns,
@@ -237,7 +240,9 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
     if (showButton) {
       injectButton(captureHandler);
     } else {
-      console.log('[Kairo] Floating button disabled in settings — registering capture trigger only (keyboard shortcut + context menu still work)');
+      console.log(
+        '[Kairo] Floating button disabled in settings — registering capture trigger only (keyboard shortcut + context menu still work)',
+      );
       registerCaptureTrigger(captureHandler);
     }
 

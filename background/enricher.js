@@ -74,11 +74,13 @@ export async function enrichCapsule(capsule) {
       return capsule;
     }
 
-    const rawText = capsule.content.rawSnippet || 
+    const rawText =
+      capsule.content.rawSnippet ||
       capsule.content.rawTurns
-        ?.map(t => `[${t.role}]: ${t.text}`)
+        ?.map((t) => `[${t.role}]: ${t.text}`)
         .join('\n\n')
-        .slice(-4000) || '';
+        .slice(-4000) ||
+      '';
 
     if (!rawText.trim()) {
       console.warn('[Kairo Enricher] No raw content to enrich');
@@ -106,20 +108,25 @@ ${rawText}
     let text = '{}';
 
     if (enrichEngine === 'gemini') {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: prompt }],
+              },
+            ],
+            generationConfig: {
+              responseMimeType: 'application/json',
+            },
+          }),
         },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
-          generationConfig: {
-            responseMimeType: 'application/json'
-          }
-        })
-      });
+      );
 
       if (!response.ok) {
         console.error('[Kairo Enricher] Gemini API error:', response.status, response.statusText);
@@ -129,7 +136,8 @@ ${rawText}
       const data = await response.json();
       text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     } else {
-      const apiEndpoint = settingsObj.kairo_settings?.apiEndpoint || 'https://api.anthropic.com/v1/messages';
+      const apiEndpoint =
+        settingsObj.kairo_settings?.apiEndpoint || 'https://api.anthropic.com/v1/messages';
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
@@ -168,11 +176,7 @@ ${rawText}
     try {
       enriched = JSON.parse(jsonText);
     } catch (parseErr) {
-      console.warn(
-        '[Kairo Enricher] Failed to parse JSON from model response:',
-        text,
-        parseErr
-      );
+      console.warn('[Kairo Enricher] Failed to parse JSON from model response:', text, parseErr);
       return capsule;
     }
 
@@ -189,12 +193,13 @@ ${rawText}
         stack: enriched.stack || capsule.content.stack,
         keyDecisions: enriched.keyDecisions || capsule.content.keyDecisions,
       },
-      meta: { 
-        ...capsule.meta, 
+      meta: {
+        ...capsule.meta,
         enriched: true,
-        tags: autoTag && Array.isArray(enriched.tags)
-          ? Array.from(new Set([...(capsule.meta?.tags || []), ...enriched.tags]))
-          : (capsule.meta?.tags || [])
+        tags:
+          autoTag && Array.isArray(enriched.tags)
+            ? Array.from(new Set([...(capsule.meta?.tags || []), ...enriched.tags]))
+            : capsule.meta?.tags || [],
       },
     };
   } catch (err) {

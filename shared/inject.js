@@ -92,15 +92,16 @@ export function insertTextIntoEditor(el, text) {
     const next = el.value ? `${el.value}\n\n${text}` : text;
     if (desc && desc.set) desc.set.call(el, next);
     else el.value = next;
-    el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+    el.dispatchEvent(
+      new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }),
+    );
     return true;
   }
 
   // --- Rich contenteditable (Claude ProseMirror, Gemini, ChatGPT) ----------
-  const editable =
-    el.isContentEditable
-      ? el
-      : (el.querySelector && el.querySelector('[contenteditable="true"], .ProseMirror')) || el;
+  const editable = el.isContentEditable
+    ? el
+    : (el.querySelector && el.querySelector('[contenteditable="true"], .ProseMirror')) || el;
 
   if (editable.focus) editable.focus();
   moveCaretToEnd(editable);
@@ -125,7 +126,7 @@ export function insertTextIntoEditor(el, text) {
     const dt = new DataTransfer();
     dt.setData('text/plain', text);
     editable.dispatchEvent(
-      new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: dt })
+      new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: dt }),
     );
   } catch (_) {
     /* ClipboardEvent not constructable in this engine — fall through */
@@ -135,7 +136,9 @@ export function insertTextIntoEditor(el, text) {
   // 3) Insert at the caret ourselves, then fire input so the editor syncs from
   //    the DOM mutation.
   insertTextAtCaret(editable, text);
-  editable.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+  editable.dispatchEvent(
+    new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }),
+  );
   if (changed()) return true;
 
   // 4) Legacy last resort.

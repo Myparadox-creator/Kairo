@@ -6,9 +6,7 @@ test('normalizeSettings keeps defaults when settings are missing', () => {
 });
 
 test('normalizeSettings trims API keys before persistence', () => {
-  expect(
-    normalizeSettings({ apiKey: '  sk-ant-example  ', autoEnrich: true })
-  ).toEqual({
+  expect(normalizeSettings({ apiKey: '  sk-ant-example  ', autoEnrich: true })).toEqual({
     ...DEFAULT_SETTINGS,
     apiKey: 'sk-ant-example',
     autoEnrich: true,
@@ -23,7 +21,7 @@ test('normalizeSettings coerces booleans and drops unknown fields', () => {
       autoEnrich: 'yes',
       showFloatingButton: false,
       extra: 'ignored',
-    })
+    }),
   ).toEqual({
     ...DEFAULT_SETTINGS,
     apiKey: '',

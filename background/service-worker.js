@@ -1,7 +1,18 @@
 // background/service-worker.js — Central hub for Kairo extension
 // Handles: messaging, storage ops, enrichment, keyboard shortcuts, context menus
 
-import { saveCapsule, getCapsules, deleteCapsule, deleteCapsules, updateCapsule, getSettings, saveSettings, clearAllCapsules, compactDatabase, findCapsuleByThread } from '../shared/storage.js';
+import {
+  saveCapsule,
+  getCapsules,
+  deleteCapsule,
+  deleteCapsules,
+  updateCapsule,
+  getSettings,
+  saveSettings,
+  clearAllCapsules,
+  compactDatabase,
+  findCapsuleByThread,
+} from '../shared/storage.js';
 import { validateCapsule } from '../shared/capsule.js';
 import { getSupportedMatchPatterns } from '../shared/platforms.js';
 import { enrichCapsule } from './enricher.js';
@@ -11,10 +22,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const handler = MESSAGE_HANDLERS[msg.type];
   if (handler) {
     handler(msg, sender)
-      .then(result => {
+      .then((result) => {
         sendResponse(result);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(`[Kairo SW] Error handling ${msg.type}:`, err);
         sendResponse({ success: false, error: err.message });
       });
@@ -33,7 +44,6 @@ const MESSAGE_HANDLERS = {
   },
 
   async FIND_THREAD_CAPSULE(msg) {
-
     return findCapsuleByThread(msg.threadId, msg.url, { turns: msg.turns, source: msg.source });
   },
 
@@ -90,12 +100,9 @@ const MESSAGE_HANDLERS = {
     return { success: true, capsule: updatedCapsule };
   },
 
-
   async GET_CAPSULES() {
     return getCapsules();
   },
-
-
 
   async DELETE_CAPSULE(msg) {
     return deleteCapsule(msg.id);
@@ -104,7 +111,6 @@ const MESSAGE_HANDLERS = {
   async DELETE_CAPSULES(msg) {
     return deleteCapsules(msg.ids);
   },
-  
 
   async UPDATE_CAPSULE(msg) {
     return updateCapsule(msg.id, msg.updates);
@@ -112,7 +118,7 @@ const MESSAGE_HANDLERS = {
 
   async ENRICH_CAPSULE(msg) {
     const capsules = await getCapsules();
-    const capsule = capsules.find(c => c.id === msg.id);
+    const capsule = capsules.find((c) => c.id === msg.id);
     if (!capsule) return { success: false, error: 'Capsule not found' };
 
     const enriched = await enrichCapsule(capsule);
@@ -132,7 +138,6 @@ const MESSAGE_HANDLERS = {
     return clearAllCapsules();
   },
 
-
   async EXPORT_TO_NOTION(msg) {
     try {
       const settings = await getSettings();
@@ -141,7 +146,7 @@ const MESSAGE_HANDLERS = {
       }
 
       const capsules = await getCapsules();
-      const capsule = capsules.find(c => c.id === msg.id);
+      const capsule = capsules.find((c) => c.id === msg.id);
       if (!capsule) {
         return { success: false, error: 'Capsule not found' };
       }
@@ -153,15 +158,17 @@ const MESSAGE_HANDLERS = {
           object: 'block',
           type: 'heading_2',
           heading_2: {
-            rich_text: [{ type: 'text', text: { content: 'Summary' } }]
-          }
+            rich_text: [{ type: 'text', text: { content: 'Summary' } }],
+          },
         });
         children.push({
           object: 'block',
           type: 'paragraph',
           paragraph: {
-            rich_text: [{ type: 'text', text: { content: capsule.content.summary.slice(0, 2000) } }]
-          }
+            rich_text: [
+              { type: 'text', text: { content: capsule.content.summary.slice(0, 2000) } },
+            ],
+          },
         });
       }
 
@@ -170,16 +177,16 @@ const MESSAGE_HANDLERS = {
           object: 'block',
           type: 'heading_2',
           heading_2: {
-            rich_text: [{ type: 'text', text: { content: 'Tech Stack' } }]
-          }
+            rich_text: [{ type: 'text', text: { content: 'Tech Stack' } }],
+          },
         });
-        capsule.content.stack.forEach(tech => {
+        capsule.content.stack.forEach((tech) => {
           children.push({
             object: 'block',
             type: 'bulleted_list_item',
             bulleted_list_item: {
-              rich_text: [{ type: 'text', text: { content: tech.slice(0, 2000) } }]
-            }
+              rich_text: [{ type: 'text', text: { content: tech.slice(0, 2000) } }],
+            },
           });
         });
       }
@@ -189,16 +196,16 @@ const MESSAGE_HANDLERS = {
           object: 'block',
           type: 'heading_2',
           heading_2: {
-            rich_text: [{ type: 'text', text: { content: 'Goals' } }]
-          }
+            rich_text: [{ type: 'text', text: { content: 'Goals' } }],
+          },
         });
-        capsule.content.goals.forEach(goal => {
+        capsule.content.goals.forEach((goal) => {
           children.push({
             object: 'block',
             type: 'bulleted_list_item',
             bulleted_list_item: {
-              rich_text: [{ type: 'text', text: { content: goal.slice(0, 2000) } }]
-            }
+              rich_text: [{ type: 'text', text: { content: goal.slice(0, 2000) } }],
+            },
           });
         });
       }
@@ -208,16 +215,16 @@ const MESSAGE_HANDLERS = {
           object: 'block',
           type: 'heading_2',
           heading_2: {
-            rich_text: [{ type: 'text', text: { content: 'Key Decisions' } }]
-          }
+            rich_text: [{ type: 'text', text: { content: 'Key Decisions' } }],
+          },
         });
-        capsule.content.keyDecisions.forEach(decision => {
+        capsule.content.keyDecisions.forEach((decision) => {
           children.push({
             object: 'block',
             type: 'bulleted_list_item',
             bulleted_list_item: {
-              rich_text: [{ type: 'text', text: { content: decision.slice(0, 2000) } }]
-            }
+              rich_text: [{ type: 'text', text: { content: decision.slice(0, 2000) } }],
+            },
           });
         });
       }
@@ -227,40 +234,42 @@ const MESSAGE_HANDLERS = {
           object: 'block',
           type: 'heading_2',
           heading_2: {
-            rich_text: [{ type: 'text', text: { content: 'Source URL' } }]
-          }
+            rich_text: [{ type: 'text', text: { content: 'Source URL' } }],
+          },
         });
         children.push({
           object: 'block',
           type: 'paragraph',
           paragraph: {
-            rich_text: [{
-              type: 'text',
-              text: {
-                content: capsule.url.slice(0, 2000),
-                link: { url: capsule.url.slice(0, 2000) }
-              }
-            }]
-          }
+            rich_text: [
+              {
+                type: 'text',
+                text: {
+                  content: capsule.url.slice(0, 2000),
+                  link: { url: capsule.url.slice(0, 2000) },
+                },
+              },
+            ],
+          },
         });
       }
 
       const titleProp = [
         {
           text: {
-            content: (capsule.title || 'Untitled Capsule').slice(0, 2000)
-          }
-        }
+            content: (capsule.title || 'Untitled Capsule').slice(0, 2000),
+          },
+        },
       ];
 
       const payload = {
         parent: { database_id: settings.notionDbId },
         properties: {
           Name: {
-            title: titleProp
-          }
+            title: titleProp,
+          },
         },
-        children
+        children,
       };
 
       let res = null;
@@ -269,11 +278,11 @@ const MESSAGE_HANDLERS = {
         res = await fetch('https://api.notion.com/v1/pages', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${settings.notionToken}`,
+            Authorization: `Bearer ${settings.notionToken}`,
             'Content-Type': 'application/json',
-            'Notion-Version': '2022-06-28'
+            'Notion-Version': '2022-06-28',
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         });
 
         if (!res.ok) {
@@ -281,17 +290,17 @@ const MESSAGE_HANDLERS = {
           if (errData?.code === 'validation_error') {
             payload.properties = {
               title: {
-                title: titleProp
-              }
+                title: titleProp,
+              },
             };
             fallbackRes = await fetch('https://api.notion.com/v1/pages', {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${settings.notionToken}`,
+                Authorization: `Bearer ${settings.notionToken}`,
                 'Content-Type': 'application/json',
-                'Notion-Version': '2022-06-28'
+                'Notion-Version': '2022-06-28',
               },
-              body: JSON.stringify(payload)
+              body: JSON.stringify(payload),
             });
             if (!fallbackRes.ok) {
               const fbErr = await fallbackRes.json();
@@ -370,7 +379,11 @@ const MESSAGE_HANDLERS = {
             if (desc && desc.set) desc.set.call(el, next);
             else el.value = next;
             el.dispatchEvent(
-              new InputEvent('input', { bubbles: true, inputType: 'insertText', data: contextText })
+              new InputEvent('input', {
+                bubbles: true,
+                inputType: 'insertText',
+                data: contextText,
+              }),
             );
             return true;
           }
@@ -420,7 +433,7 @@ const MESSAGE_HANDLERS = {
               cancelable: true,
               inputType: 'insertText',
               data: contextText,
-            })
+            }),
           );
           if (handledByEditor || changed()) return true;
 
@@ -428,7 +441,7 @@ const MESSAGE_HANDLERS = {
             const dt = new DataTransfer();
             dt.setData('text/plain', contextText);
             editable.dispatchEvent(
-              new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: dt })
+              new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: dt }),
             );
           } catch (_) {
             /* ClipboardEvent not constructable in this engine */
@@ -437,7 +450,7 @@ const MESSAGE_HANDLERS = {
 
           insertAtCaret(editable, contextText);
           editable.dispatchEvent(
-            new InputEvent('input', { bubbles: true, inputType: 'insertText', data: contextText })
+            new InputEvent('input', { bubbles: true, inputType: 'insertText', data: contextText }),
           );
           if (changed()) return true;
 
@@ -511,12 +524,14 @@ chrome.commands.onCommand.addListener((command) => {
   if (command === 'capture-kairo') {
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
       if (!tab?.id) return;
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => window.__kairoTriggerCapture?.(),
-      }).catch(err => {
-        console.error('[Kairo SW] Shortcut trigger error:', err);
-      });
+      chrome.scripting
+        .executeScript({
+          target: { tabId: tab.id },
+          func: () => window.__kairoTriggerCapture?.(),
+        })
+        .catch((err) => {
+          console.error('[Kairo SW] Shortcut trigger error:', err);
+        });
     });
   } else if (command === 'toggle-floating-btn') {
     chrome.storage.sync.get('kairo_settings', (res) => {
@@ -541,16 +556,24 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'kairo-capture' && tab?.id) {
-    if (!tab.url || tab.url.startsWith('chrome:') || tab.url.startsWith('file:') || tab.url.startsWith('about:') || tab.url.startsWith('edge:')) {
+    if (
+      !tab.url ||
+      tab.url.startsWith('chrome:') ||
+      tab.url.startsWith('file:') ||
+      tab.url.startsWith('about:') ||
+      tab.url.startsWith('edge:')
+    ) {
       console.warn('[Kairo SW] Context menu capture skipped: unsupported URL protocol', tab.url);
       return;
     }
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: () => window.__kairoTriggerCapture?.(),
-    }).catch(err => {
-      console.error('[Kairo SW] Context menu trigger error:', err);
-    });
+    chrome.scripting
+      .executeScript({
+        target: { tabId: tab.id },
+        func: () => window.__kairoTriggerCapture?.(),
+      })
+      .catch((err) => {
+        console.error('[Kairo SW] Context menu trigger error:', err);
+      });
   }
 });
 
@@ -581,14 +604,17 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
   try {
     const capsules = await getCapsules();
     const query = text.trim().toLowerCase();
-    const filtered = capsules.filter(c => 
-      (c.title || '').toLowerCase().includes(query) ||
-      (c.content?.summary || '').toLowerCase().includes(query)
-    ).slice(0, 5);
+    const filtered = capsules
+      .filter(
+        (c) =>
+          (c.title || '').toLowerCase().includes(query) ||
+          (c.content?.summary || '').toLowerCase().includes(query),
+      )
+      .slice(0, 5);
 
-    const suggestions = filtered.map(c => ({
+    const suggestions = filtered.map((c) => ({
       content: c.id,
-      description: `Kairo: ${c.title || 'Untitled'} - ${c.content?.summary?.slice(0, 50) || 'no summary'}`
+      description: `Kairo: ${c.title || 'Untitled'} - ${c.content?.summary?.slice(0, 50) || 'no summary'}`,
     }));
 
     suggest(suggestions);
@@ -600,10 +626,10 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
 chrome.omnibox.onInputEntered.addListener(async (text) => {
   try {
     const capsules = await getCapsules();
-    let capsule = capsules.find(c => c.id === text);
+    let capsule = capsules.find((c) => c.id === text);
     if (!capsule && text) {
       // Fallback: prefix match
-      capsule = capsules.find(c => (c.title || '').toLowerCase().includes(text.toLowerCase()));
+      capsule = capsules.find((c) => (c.title || '').toLowerCase().includes(text.toLowerCase()));
     }
     if (!capsule) return;
 
@@ -612,7 +638,7 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
 
     const settings = await getSettings();
     const template = settings?.injectionTemplate;
-    
+
     let formattedText = '';
     if (capsule.content?.summary) {
       const goals = (capsule.content.goals || []).join(', ');
@@ -651,9 +677,8 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
 });
 
 // Auto-compact and merge duplicates on initialization
-compactDatabase().catch(err => {
+compactDatabase().catch((err) => {
   console.warn('[Kairo SW] Initial DB compaction skipped:', err);
 });
 
 console.log('[Kairo SW] Service worker initialized');
-

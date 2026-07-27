@@ -31,10 +31,14 @@ export function normalizeSettings(settings = {}) {
     notionDbId: typeof settings.notionDbId === 'string' ? settings.notionDbId.trim() : '',
     experimentalMerge: settings.experimentalMerge === true,
     experimentalDebug: settings.experimentalDebug === true,
-    apiEndpoint: typeof settings.apiEndpoint === 'string' && settings.apiEndpoint.trim() ? settings.apiEndpoint.trim() : 'https://api.anthropic.com/v1/messages',
+    apiEndpoint:
+      typeof settings.apiEndpoint === 'string' && settings.apiEndpoint.trim()
+        ? settings.apiEndpoint.trim()
+        : 'https://api.anthropic.com/v1/messages',
     enrichEngine: typeof settings.enrichEngine === 'string' ? settings.enrichEngine : 'claude',
     geminiApiKey: typeof settings.geminiApiKey === 'string' ? settings.geminiApiKey.trim() : '',
-    injectionTemplate: typeof settings.injectionTemplate === 'string' ? settings.injectionTemplate : '',
+    injectionTemplate:
+      typeof settings.injectionTemplate === 'string' ? settings.injectionTemplate : '',
     autoBackup: settings.autoBackup === true,
     lastBackupTime: typeof settings.lastBackupTime === 'number' ? settings.lastBackupTime : 0,
   };
