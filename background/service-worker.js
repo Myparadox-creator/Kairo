@@ -49,9 +49,12 @@ const MESSAGE_HANDLERS = {
 
   async MERGE_CAPSULE(msg) {
     const capsules = await getCapsules();
-    let existing = msg.id ? capsules.find(c => c.id === msg.id) : null;
+    let existing = msg.id ? capsules.find((c) => c.id === msg.id) : null;
     if (!existing) {
-      existing = await findCapsuleByThread(msg.threadId, msg.url, { turns: msg.turns, source: msg.source });
+      existing = await findCapsuleByThread(msg.threadId, msg.url, {
+        turns: msg.turns,
+        source: msg.source,
+      });
     }
 
     if (!existing) {

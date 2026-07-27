@@ -846,7 +846,9 @@ export function promptDuplicateAction({ existingCapsule, newTurnCount }) {
       transition: transform 0.2s, box-shadow 0.2s;
       text-align: center;
     `;
-    mergeBtn.addEventListener('click', () => closeModal({ action: 'merge', title: existingCapsule.title }));
+    mergeBtn.addEventListener('click', () =>
+      closeModal({ action: 'merge', title: existingCapsule.title }),
+    );
 
     // Option 2: Update & Re-enrich
     const enrichBtn = document.createElement('button');
@@ -863,7 +865,9 @@ export function promptDuplicateAction({ existingCapsule, newTurnCount }) {
       transition: background 0.2s, color 0.2s;
       text-align: center;
     `;
-    enrichBtn.addEventListener('click', () => closeModal({ action: 'merge', title: existingCapsule.title, enrich: true }));
+    enrichBtn.addEventListener('click', () =>
+      closeModal({ action: 'merge', title: existingCapsule.title, enrich: true }),
+    );
 
     // Option 3: Save as New Copy
     const newCopyBtn = document.createElement('button');
@@ -911,4 +915,3 @@ export function promptDuplicateAction({ existingCapsule, newTurnCount }) {
     }, 50);
   });
 }
-

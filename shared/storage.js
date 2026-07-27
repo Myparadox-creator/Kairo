@@ -111,7 +111,9 @@ async function upsertCapsuleUnlocked(capsule) {
         ...target.content,
         ...capsule.content,
         summary: capsule.content?.summary || target.content?.summary || '',
-        rawTurns: capsule.content?.rawTurns?.length ? capsule.content.rawTurns : target.content?.rawTurns || [],
+        rawTurns: capsule.content?.rawTurns?.length
+          ? capsule.content.rawTurns
+          : target.content?.rawTurns || [],
         rawSnippet: capsule.content?.rawSnippet || target.content?.rawSnippet || '',
       },
       meta: {
@@ -197,7 +199,7 @@ export async function findCapsuleByThread(threadId, url = '', opts = {}) {
     const capsules = await getCapsules();
     if (!capsules.length) return null;
 
-    const turns = Array.isArray(opts) ? opts : (opts.turns || []);
+    const turns = Array.isArray(opts) ? opts : opts.turns || [];
     const source = typeof opts === 'object' && !Array.isArray(opts) ? opts.source : null;
 
     const incoming = {
@@ -341,7 +343,9 @@ export async function compactDatabase() {
 
       for (const cap of localCaps) {
         const capSig = getTurnSignature(cap.content?.rawTurns);
-        const existingIdx = dedupedCaps.findIndex((existing) => isSameThread(existing, cap, capSig));
+        const existingIdx = dedupedCaps.findIndex((existing) =>
+          isSameThread(existing, cap, capSig),
+        );
 
         if (existingIdx > -1) {
           const target = dedupedCaps[existingIdx];

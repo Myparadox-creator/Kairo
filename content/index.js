@@ -1,7 +1,12 @@
 // content/index.js — Entry point: detects platform, loads extractor, injects capture button
 
 import { getExtractor } from './extractors/index.js';
-import { injectButton, promptCapsuleName, promptDuplicateAction, registerCaptureTrigger } from './injector.js';
+import {
+  injectButton,
+  promptCapsuleName,
+  promptDuplicateAction,
+  registerCaptureTrigger,
+} from './injector.js';
 import { createCapsule } from '../shared/capsule.js';
 import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/utils.js';
 
@@ -24,11 +29,17 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
       if (_inMemoryCapsuleId) return _inMemoryCapsuleId;
       try {
         const fromDom = document.documentElement.getAttribute('data-kairo-capsule-id');
-        if (fromDom) { _inMemoryCapsuleId = fromDom; return fromDom; }
+        if (fromDom) {
+          _inMemoryCapsuleId = fromDom;
+          return fromDom;
+        }
       } catch (e) {}
       try {
         const fromSession = sessionStorage.getItem('kairo_active_capsule_id');
-        if (fromSession) { _inMemoryCapsuleId = fromSession; return fromSession; }
+        if (fromSession) {
+          _inMemoryCapsuleId = fromSession;
+          return fromSession;
+        }
       } catch (e) {}
       return null;
     }
@@ -36,8 +47,12 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
     function setTabCapsuleId(id) {
       if (!id) return;
       _inMemoryCapsuleId = id;
-      try { document.documentElement.setAttribute('data-kairo-capsule-id', id); } catch (e) {}
-      try { sessionStorage.setItem('kairo_active_capsule_id', id); } catch (e) {}
+      try {
+        document.documentElement.setAttribute('data-kairo-capsule-id', id);
+      } catch (e) {}
+      try {
+        sessionStorage.setItem('kairo_active_capsule_id', id);
+      } catch (e) {}
     }
 
     // Check settings (graceful fallback)
@@ -104,15 +119,20 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
         try {
           const capsules = await chrome.runtime.sendMessage({ type: 'GET_CAPSULES' });
           if (Array.isArray(capsules)) {
-            const found = capsules.find(c => c.id === pinnedId);
+            const found = capsules.find((c) => c.id === pinnedId);
             if (found) {
               const storedTurns = found.content?.rawTurns || [];
               // Ensure the pinned capsule actually belongs to the active conversation content
-              if (hasUserTurnOverlap(storedTurns, safeTurns) || hasTurnOverlap(storedTurns, safeTurns)) {
+              if (
+                hasUserTurnOverlap(storedTurns, safeTurns) ||
+                hasTurnOverlap(storedTurns, safeTurns)
+              ) {
                 existingCapsule = found;
                 console.log(`[Kairo] Found matching pinned capsule: "${existingCapsule.title}"`);
               } else {
-                console.log(`[Kairo] Pinned capsule "${found.title}" does not match active chat content (user switched chats in sidebar)`);
+                console.log(
+                  `[Kairo] Pinned capsule "${found.title}" does not match active chat content (user switched chats in sidebar)`,
+                );
               }
             }
           }
@@ -133,7 +153,9 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
             turns: safeTurns,
           });
           if (existingCapsule) {
-            console.log(`[Kairo] Found existing capsule by content match: "${existingCapsule.title}" (${existingCapsule.id})`);
+            console.log(
+              `[Kairo] Found existing capsule by content match: "${existingCapsule.title}" (${existingCapsule.id})`,
+            );
           }
         } catch (findErr) {
           console.warn('[Kairo] Could not check for existing thread capsule:', findErr);
@@ -144,7 +166,9 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
 
       // ─── MERGE PATH: Existing capsule for THIS chat found ───────────────
       if (existingCapsule) {
-        console.log(`[Kairo] Merging turns into existing capsule for this chat: ${existingCapsule.id} ("${existingCapsule.title}")`);
+        console.log(
+          `[Kairo] Merging turns into existing capsule for this chat: ${existingCapsule.id} ("${existingCapsule.title}")`,
+        );
         try {
           result = await chrome.runtime.sendMessage({
             type: 'MERGE_CAPSULE',
@@ -164,7 +188,9 @@ import { extractThreadId, hasUserTurnOverlap, hasTurnOverlap } from '../shared/u
 
         if (result && result.success) {
           setTabCapsuleId(existingCapsule.id);
-          console.log(`[Kairo] ✓ Capsule merged successfully: "${result.capsule?.title || existingCapsule.title}"`);
+          console.log(
+            `[Kairo] ✓ Capsule merged successfully: "${result.capsule?.title || existingCapsule.title}"`,
+          );
           return result;
         }
       }

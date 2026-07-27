@@ -166,7 +166,6 @@ function Popup() {
         setLoading(false);
       });
     });
-
   }, []);
 
   // Trigger weekly backup if enabled and due
@@ -579,8 +578,29 @@ function Popup() {
         Kairo
       </h1>
       <div class="header-actions">
-        <button class="icon-btn" onClick=${handleCleanDuplicates} title="Merge Duplicates" id="kairo-clean-btn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <button
+          class="icon-btn"
+          onClick=${handleCleanDuplicates}
+          title="Merge Duplicates"
+          id="kairo-clean-btn"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="display:block;"
+          >
+            <path
+              d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+            ></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
         </button>
         <button class="icon-btn" onClick=${handleExport} title="Export" id="kairo-export-btn">
           <svg
@@ -624,7 +644,6 @@ function Popup() {
         </button>
       </div>
     </div>
-
 
     <!-- Search -->
     <div class="search-container" style="position: relative;">

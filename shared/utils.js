@@ -65,14 +65,19 @@ export function platformName(source) {
  */
 export function cleanTextForMatching(str = '') {
   if (!str || typeof str !== 'string') return '';
-  return str
-    .toLowerCase()
-    // Strip UI button labels and SVG icon names commonly rendered near message text
-    .replace(/\b(edit|copy|content_copy|share|retry|thumbs?_up|thumbs?_down|more_vert|expand_more|read_aloud|modify|drafts?)\b/g, '')
-    // Replace non-alphanumeric with spaces
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    str
+      .toLowerCase()
+      // Strip UI button labels and SVG icon names commonly rendered near message text
+      .replace(
+        /\b(edit|copy|content_copy|share|retry|thumbs?_up|thumbs?_down|more_vert|expand_more|read_aloud|modify|drafts?)\b/g,
+        '',
+      )
+      // Replace non-alphanumeric with spaces
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /**
@@ -90,7 +95,8 @@ export function getSafeText(el) {
   if (typeof Element !== 'undefined' && el instanceof Element) {
     try {
       const clone = el.cloneNode(true);
-      const selectorsToRemove = 'button, svg, [role="button"], .aria-label, [data-testid*="button"], [class*="action"], [class*="icon"], [class*="copy"], [class*="edit"]';
+      const selectorsToRemove =
+        'button, svg, [role="button"], .aria-label, [data-testid*="button"], [class*="action"], [class*="icon"], [class*="copy"], [class*="edit"]';
       clone.querySelectorAll(selectorsToRemove).forEach((node) => node.remove());
       target = clone;
     } catch (e) {
