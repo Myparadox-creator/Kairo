@@ -1,5 +1,6 @@
 // shared/storage.js — chrome.storage.local wrapper for Capsule persistence
 import { DEFAULT_SETTINGS, normalizeSettings } from './settings.js';
+import { extractThreadId, getTurnSignature, hasTurnOverlap, hasUserTurnOverlap } from './utils.js';
 
 const STORAGE_KEY = 'kairo_capsules';
 const SETTINGS_KEY = 'kairo_settings';
@@ -33,14 +34,93 @@ async function syncLocalPinnedToSync() {
   }
 }
 
+/**
+ * Core matching logic: determines if a new capture refers to the same
+ * conversation thread as an existing stored capsule.
+ *
+ * Uses a 4-layer cascade — ANY match is sufficient:
+ *   1. Direct ID match (same capsule being updated)
+ *   2. Thread ID match (works for ChatGPT, Claude, DeepSeek — where URL has chat ID)
+ *   3. Specific URL match (only when URL actually contains a thread ID)
+ *   4. Content-based match: same platform + shared user prompt or turn content
+ *
+ * WHY content matching is critical:
+ *   On Gemini (https://gemini.google.com/app/), the URL does NOT change when switching
+ *   chats in the history sidebar. Matching requires comparing actual conversation
+ *   content:
+ *   - Same chat, new turns -> user prompts overlap -> MERGE into existing capsule
+ *   - Different chat from history -> user prompts differ -> CREATE new capsule
+ *
+ * @param {Object} stored  - The capsule already in storage
+ * @param {Object} incoming - The new capsule being saved
+ * @param {string} incomingSig - Pre-computed getTurnSignature(incoming.content.rawTurns)
+ * @returns {boolean}
+ */
+function isSameThread(stored, incoming, incomingSig) {
+  // Layer 1: Direct ID match
+  if (stored.id && incoming.id && stored.id === incoming.id) return true;
+
+  // Layer 2: Thread ID match (only when threadId is non-empty, e.g. ChatGPT, Claude, DeepSeek)
+  if (stored.threadId && incoming.threadId && stored.threadId === incoming.threadId) {
+    return true;
+  }
+
+  // Layer 3: URL match (only when URL actually contains thread info)
+  if (stored.url && incoming.url && stored.url === incoming.url) {
+    const storedThread = extractThreadId(stored.url);
+    if (storedThread) return true;
+  }
+
+  // Layer 4: Content-based match — same platform + any shared user prompt or turn text
+  if (incoming.source && stored.source && incoming.source === stored.source) {
+    const incomingTurns = incoming.content?.rawTurns || [];
+    const storedTurns = stored.content?.rawTurns || [];
+
+    if (incomingTurns.length && storedTurns.length) {
+      if (hasUserTurnOverlap(storedTurns, incomingTurns)) return true;
+
+      if (incomingSig) {
+        const storedSig = getTurnSignature(storedTurns);
+        if (storedSig && storedSig === incomingSig) return true;
+      }
+
+      if (hasTurnOverlap(storedTurns, incomingTurns)) return true;
+    }
+  }
+
+  return false;
+}
+
 // Read-modify-write upsert. NOT locked on its own — callers must invoke it from
 // within enqueueMutation so the read observes the previous mutation's write.
 async function upsertCapsuleUnlocked(capsule) {
   const existing = await getCapsules();
-  const idx = existing.findIndex((c) => c.id === capsule.id);
+  const incomingSig = getTurnSignature(capsule.content?.rawTurns);
+
+  const idx = existing.findIndex((c) => isSameThread(c, capsule, incomingSig));
 
   if (idx > -1) {
-    existing[idx] = { ...existing[idx], ...capsule, updatedAt: Date.now() };
+    // Merge into existing capsule: preserve original ID, title, and initial metadata
+    const target = existing[idx];
+    existing[idx] = {
+      ...target,
+      url: capsule.url || target.url,
+      threadId: capsule.threadId || target.threadId,
+      updatedAt: Date.now(),
+      content: {
+        ...target.content,
+        ...capsule.content,
+        summary: capsule.content?.summary || target.content?.summary || '',
+        rawTurns: capsule.content?.rawTurns?.length
+          ? capsule.content.rawTurns
+          : target.content?.rawTurns || [],
+        rawSnippet: capsule.content?.rawSnippet || target.content?.rawSnippet || '',
+      },
+      meta: {
+        ...target.meta,
+        ...capsule.meta,
+      },
+    };
   } else {
     existing.unshift(capsule);
   }
@@ -104,6 +184,38 @@ export async function getCapsules() {
   } catch (err) {
     console.error('[Kairo] Storage read error:', err);
     return [];
+  }
+}
+
+/**
+ * Search for an existing capsule by thread ID, matching URL, or content fingerprint.
+ * @param {string} threadId - Thread identifier (may be '' for Gemini)
+ * @param {string} [url] - Full URL string
+ * @param {Object|Array} [opts] - Options object { turns, source } or turns array
+ * @returns {Promise<Object|null>} The matching capsule or null if not found
+ */
+export async function findCapsuleByThread(threadId, url = '', opts = {}) {
+  try {
+    const capsules = await getCapsules();
+    if (!capsules.length) return null;
+
+    const turns = Array.isArray(opts) ? opts : opts.turns || [];
+    const source = typeof opts === 'object' && !Array.isArray(opts) ? opts.source : null;
+
+    const incoming = {
+      id: '',
+      threadId: threadId || (url ? extractThreadId(url) : ''),
+      url: url,
+      source: source || '',
+      updatedAt: Date.now(),
+      content: { rawTurns: turns },
+    };
+    const incomingSig = getTurnSignature(turns);
+
+    return capsules.find((c) => isSameThread(c, incoming, incomingSig)) || null;
+  } catch (err) {
+    console.error('[Kairo] Error finding capsule by thread:', err);
+    return null;
   }
 }
 
@@ -226,13 +338,39 @@ export async function compactDatabase() {
         );
       });
 
-      // Deduplicate by ID
-      const seen = new Set();
-      localCaps = localCaps.filter((c) => {
-        if (seen.has(c.id)) return false;
-        seen.add(c.id);
-        return true;
-      });
+      // Deduplicate using the same isSameThread() cascade
+      const dedupedCaps = [];
+
+      for (const cap of localCaps) {
+        const capSig = getTurnSignature(cap.content?.rawTurns);
+        const existingIdx = dedupedCaps.findIndex((existing) =>
+          isSameThread(existing, cap, capSig),
+        );
+
+        if (existingIdx > -1) {
+          const target = dedupedCaps[existingIdx];
+          const capTurns = cap.content?.rawTurns || [];
+          const targetTurns = target.content?.rawTurns || [];
+
+          dedupedCaps[existingIdx] = {
+            ...target,
+            url: cap.url || target.url,
+            threadId: cap.threadId || target.threadId,
+            content: {
+              ...target.content,
+              ...(capTurns.length >= targetTurns.length ? cap.content : {}),
+              rawTurns: capTurns.length >= targetTurns.length ? capTurns : targetTurns,
+            },
+            id: target.id,
+            title: target.title || cap.title,
+            updatedAt: Math.max(target.updatedAt || 0, cap.updatedAt || 0),
+          };
+        } else {
+          dedupedCaps.push(cap);
+        }
+      }
+
+      localCaps = dedupedCaps;
 
       await chrome.storage.local.set({ [STORAGE_KEY]: localCaps });
       await syncLocalPinnedToSync();

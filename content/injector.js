@@ -762,3 +762,156 @@ export function promptCapsuleName() {
     });
   });
 }
+
+export function promptDuplicateAction({ existingCapsule, newTurnCount }) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(9, 9, 11, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2147483647;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    `;
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 16px;
+      width: 420px;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+      color: #f4f4f5;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: kairo-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: system-ui, -apple-system, sans-serif;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = `display: flex; align-items: center; gap: 8px;`;
+
+    const icon = document.createElement('span');
+    icon.textContent = '🔄';
+    icon.style.cssText = `font-size: 18px;`;
+
+    const title = document.createElement('h3');
+    title.textContent = 'Existing Capsule Detected';
+    title.style.cssText = `margin: 0; font-size: 16px; font-weight: 600; color: #fff;`;
+
+    header.appendChild(icon);
+    header.appendChild(title);
+    card.appendChild(header);
+
+    const prevTurnCount = existingCapsule.content?.rawTurns?.length || 0;
+    const desc = document.createElement('p');
+    desc.style.cssText = `margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.5;`;
+    desc.innerHTML = `A capsule for this thread already exists: <strong style="color:#fff;">${existingCapsule.title || 'Untitled'}</strong> (${prevTurnCount} turns). This page now has <strong style="color:#8b6aff;">${newTurnCount} turns</strong>. How would you like to proceed?`;
+    card.appendChild(desc);
+
+    const actionsContainer = document.createElement('div');
+    actionsContainer.style.cssText = `display: flex; flex-direction: column; gap: 8px; margin-top: 4px;`;
+
+    const closeModal = (val) => {
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(val);
+      }, 200);
+    };
+
+    // Option 1: Merge / Update Existing
+    const mergeBtn = document.createElement('button');
+    mergeBtn.textContent = 'Merge & Update Existing Capsule';
+    mergeBtn.style.cssText = `
+      background: linear-gradient(135deg, #6c47ff 0%, #8b6aff 100%);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(108, 71, 255, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-align: center;
+    `;
+    mergeBtn.addEventListener('click', () =>
+      closeModal({ action: 'merge', title: existingCapsule.title }),
+    );
+
+    // Option 2: Update & Re-enrich
+    const enrichBtn = document.createElement('button');
+    enrichBtn.textContent = 'Update & Re-enrich Summary';
+    enrichBtn.style.cssText = `
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #eaeaf0;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      text-align: center;
+    `;
+    enrichBtn.addEventListener('click', () =>
+      closeModal({ action: 'merge', title: existingCapsule.title, enrich: true }),
+    );
+
+    // Option 3: Save as New Copy
+    const newCopyBtn = document.createElement('button');
+    newCopyBtn.textContent = 'Save as New Copy';
+    newCopyBtn.style.cssText = `
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #eaeaf0;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      text-align: center;
+    `;
+    newCopyBtn.addEventListener('click', () => closeModal({ action: 'new' }));
+
+    // Option 4: Cancel
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+      background: transparent;
+      border: none;
+      padding: 8px 16px;
+      color: #a1a1aa;
+      font-size: 12px;
+      cursor: pointer;
+      transition: color 0.2s;
+      text-align: center;
+    `;
+    cancelBtn.addEventListener('click', () => closeModal(null));
+
+    actionsContainer.appendChild(mergeBtn);
+    actionsContainer.appendChild(enrichBtn);
+    actionsContainer.appendChild(newCopyBtn);
+    actionsContainer.appendChild(cancelBtn);
+    card.appendChild(actionsContainer);
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+      overlay.style.opacity = '1';
+    }, 50);
+  });
+}
