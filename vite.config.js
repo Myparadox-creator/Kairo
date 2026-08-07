@@ -62,6 +62,7 @@ export default defineConfig({
     sourcemap: process.env.NODE_ENV !== 'production',
     minify: process.env.NODE_ENV === 'production',
   },
+  base: '',
   resolve: {
     alias: {
       '@': resolve(__dirname),
