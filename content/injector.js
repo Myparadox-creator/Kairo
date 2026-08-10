@@ -366,6 +366,15 @@ function trackInputArea(menu, modal) {
     }
 
     if (input) {
+      const rect = input.getBoundingClientRect();
+
+      // Guard: if the element has zero dimensions (e.g. during React
+      // re-renders or SPA transitions), skip this frame and retry later.
+      if (rect.width === 0 && rect.height === 0) {
+        currentTextarea = null; // force re-query next cycle
+        return;
+      }
+
       if (currentTextarea !== input) {
         currentTextarea = input;
 
@@ -397,8 +406,6 @@ function trackInputArea(menu, modal) {
         inputResizeObserver = new ResizeObserver(scheduleUpdate);
         inputResizeObserver.observe(input);
       }
-
-      const rect = input.getBoundingClientRect();
 
       // Skip redundant style writes when the anchor has not moved.
       const key = `${Math.round(rect.right)}:${Math.round(rect.bottom)}`;
