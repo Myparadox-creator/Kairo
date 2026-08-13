@@ -1,0 +1,27 @@
+# CODEOWNERS — Code Owners for Kairo repository
+# GitHub automatically requests reviews from the owners specified here when a PR touches these paths.
+
+# Global fallback owner for all files across the repository
+*                       @satyakiabhijit
+
+# GitHub Workflows and Issue/PR Templates
+/.github/               @satyakiabhijit
+
+# Core Extension Components
+/background/            @satyakiabhijit
+/content/               @satyakiabhijit
+/popup/                 @satyakiabhijit
+/options/               @satyakiabhijit
+/shared/                @satyakiabhijit
+
+# CLI Subsystem
+/cli/                   @satyakiabhijit
+
+# Assets, Documentation & Build Configuration
+/assets/                @satyakiabhijit
+/docs/                  @satyakiabhijit
+/public/                @satyakiabhijit
+/manifest.json          @satyakiabhijit
+/manifest.firefox.json  @satyakiabhijit
+/vite.config.js         @satyakiabhijit
+/package.json           @satyakiabhijit
